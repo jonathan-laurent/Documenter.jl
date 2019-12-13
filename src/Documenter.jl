@@ -487,7 +487,7 @@ function git_push(
         run(`git config user.name "zeptodoctor"`)
         run(`git config user.email "44736852+zeptodoctor@users.noreply.github.com"`)
         if f !== nothing
-            run(`git config core.sshCommand "ssh -F $f`)
+            run(`git config core.sshCommand "ssh -F $f"`)
             @info "git config core.sshCommand: $(read(`git config core.sshCommand`, String))"
         end
 

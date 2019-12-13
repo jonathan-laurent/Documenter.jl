@@ -481,11 +481,15 @@ function git_push(
     target_dir = abspath(target)
 
     # Generate a closure with common commands for ssh and https
-    function git_commands()
+    function git_commands(f=nothing)
         # Setup git.
         run(`git init`)
         run(`git config user.name "zeptodoctor"`)
         run(`git config user.email "44736852+zeptodoctor@users.noreply.github.com"`)
+        if f !== nothing
+            run(`git config core.sshCommand "ssh -F $f`)
+            @info "git config core.sshCommand: $(read(`git config core.sshCommand`, String))"
+        end
 
         # Fetch from remote and checkout the branch.
         run(`git remote add upstream $upstream`)
@@ -573,7 +577,8 @@ function git_push(
 
         try
             # Use a custom SSH config file to avoid overwriting the default user config.
-            withfile(joinpath(homedir(), ".ssh", "config"),
+            sshconfig = joinpath(homedir(), ".ssh", "config")
+            withfile(sshconfig,
                 """
                 Host $host
                     StrictHostKeyChecking no
@@ -584,7 +589,10 @@ function git_push(
                     BatchMode yes
                 """
             ) do
-                cd(git_commands, temp)
+                # chmod(sshconfig, 0o600)
+                @info "git --version: $(read(`git --version`, String))"
+
+                cd(() -> git_commands(sshconfig), temp)
             end
             post_status(deploy_config; repo=repo, type="success", subfolder=subfolder)
         catch e
